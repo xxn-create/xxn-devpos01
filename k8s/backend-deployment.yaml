@@ -19,7 +19,7 @@ spec:
       - name: backend
         image: crpi-yxgke0fmugkip11g.cn-hangzhou.personal.cr.aliyuncs.com/xxn-devpos/xxn-devpos01:backend-latest
         ports:
-        - containerPort: 8000
+        - containerPort: 5000
         resources:
           requests:
             cpu: 100m
@@ -30,13 +30,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8000
+            port: 5000
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /ready
-            port: 8000
+            port: 5000
           initialDelaySeconds: 10
           periodSeconds: 5
 ---
