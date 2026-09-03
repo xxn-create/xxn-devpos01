@@ -7,24 +7,46 @@ on:
 env:
   REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
   NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
-  IMAGE_NAME: xxn-devpos01
+  REPO: xxn-devpos01
 
 jobs:
-  build-and-push:
+  build-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.ALIYUN_REGISTRY_USER }}
           password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-      - uses: docker/build-push-action@v5
+      - name: Build backend
+        run: |
+          docker build -f backend/dockerfile -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:backend-${{ github.sha }} ./backend
+          docker tag ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:backend-${{ github.sha }} ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:backend-latest
+      - name: Push backend
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:backend-${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:backend-latest
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+      - uses: docker/login-action@v3
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USER }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+      - name: Build frontend
+        run: |
+          docker build -f frontend/dockerfile -t ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:frontend-${{ github.sha }} ./frontend
+          docker tag ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:frontend-${{ github.sha }} ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:frontend-latest
+      - name: Push frontend
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:frontend-${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:frontend-latest

@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: prod-platform
+  labels:
+    app: frontend
 spec:
   replicas: 2
   selector:
@@ -18,6 +20,13 @@ spec:
         image: crpi-yxgke0fmugkip11g.cn-hangzhou.personal.cr.aliyuncs.com/xxn-devpos/xxn-devpos01:frontend-latest
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -25,9 +34,9 @@ metadata:
   name: frontend
   namespace: prod-platform
 spec:
-  type: NodePort
   selector:
     app: frontend
   ports:
   - port: 80
     targetPort: 80
+  type: ClusterIP
